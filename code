@@ -1,0 +1,33 @@
+//@version=4
+strategy("RSI, Bollinger and VWAP Strategy", overlay=true)
+
+// Input parameters
+rsiLength = input(14, title="RSI Length")
+bandLength = input(20, title="Bollinger Band Length")
+bandStdDev = input(2, title="Bollinger Band Standard Deviation")
+
+// Calculate indicators
+rsi = rsi(close, rsiLength)
+[vwapLine, vwapHigh, vwapLow] = vwma(close, high, low, volume, bandLength)
+basis = sma(close, bandLength)
+dev = bandStdDev * stdev(close, bandLength)
+upperBand = basis + dev
+lowerBand = basis - dev
+
+// Define entry and exit conditions
+longCondition = crossover(close, lowerBand) and rsi < 30 and close > vwapLine
+if (longCondition)
+    strategy.entry("Buy", strategy.long)
+
+shortCondition = crossunder(close, upperBand) and rsi > 70 and close < vwapLine
+if (shortCondition)
+    strategy.entry("Sell", strategy.short)
+
+// Plotting
+plot(rsi, "RSI", color=color.blue)
+hline(70, "Upper Level", color=color.red)
+hline(30, "Lower Level", color=color.green)
+plot(upperBand, "Upper Bollinger Band", color=color.red)
+plot(basis, "Basis", color=color.blue)
+plot(lowerBand, "Lower Bollinger Band", color=color.green)
+plot(vwapLine, "VWAP", color=color.purple)
